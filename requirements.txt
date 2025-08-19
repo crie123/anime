@@ -1,0 +1,9 @@
+# Minimal runtime requirements (Windows desktop app using Kivy)
+# Pin or constrain to compatible ranges to avoid breaking changes.
+
+kivy>=2.0.0,<3.0.0
+pillow>=9.0.0,<11.0.0
+
+# Optional (only if using features requiring them):
+# ffpyplayer for advanced audio/video support
+# ffpyplayer>=4.4.0

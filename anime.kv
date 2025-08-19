@@ -1,0 +1,693 @@
+#:kivy 2.0.0
+
+#:set primary_color (0.2, 0.6, 0.9, 1)  # Blue
+#:set secondary_color (0.15, 0.15, 0.15, 1)  # Dark Gray for dark theme
+#:set accent_color (0.9, 0.3, 0.3, 1)  # Red
+#:set text_color (0.9, 0.9, 0.9, 1)  # Light text for dark theme
+#:set bg_color (0.1, 0.1, 0.1, 1)  # Very Dark Gray for background
+#:set input_bg_color (0.2, 0.2, 0.2, 1)  # Slightly lighter dark for inputs
+
+<Label>:
+    color: text_color
+
+<TextInput>:
+    background_color: input_bg_color
+    foreground_color: text_color
+    cursor_color: primary_color
+    multiline: False
+    padding: [10, 10]
+    canvas.before:
+        Color:
+            rgba: primary_color
+        Rectangle:
+            pos: self.pos
+            size: [self.size[0], 1]
+        Rectangle:
+            pos: [self.pos[0], self.pos[1] + self.size[1] - 1]
+            size: [self.size[0], 1]
+        Rectangle:
+            pos: self.pos
+            size: [1, self.size[1]]
+        Rectangle:
+            pos: [self.pos[0] + self.size[0] - 1, self.pos[1]]
+            size: [1, self.size[1]]
+
+<Spinner>:
+    background_normal: ''
+    background_color: primary_color
+    color: secondary_color
+    option_cls: "SpinnerOption"
+
+<SpinnerOption>:
+    background_normal: ''
+    background_color: primary_color
+    color: secondary_color
+
+<Button>:
+    background_normal: ''
+    background_color: primary_color
+    color: secondary_color
+    size_hint_y: None
+    height: 40
+    canvas.before:
+        Color:
+            rgba: (0.18, 0.54, 0.81, 1) if self.state == 'normal' else (0.15, 0.45, 0.68, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<Popup>:
+    background: ''
+    background_color: bg_color
+    title_color: text_color
+    separator_color: primary_color
+    title_size: '18sp'
+
+<AnimeCard>:
+    canvas.before:
+        Color:
+            rgba: secondary_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    orientation: 'vertical'
+    size_hint_y: None
+    height: 320
+    padding: 10
+    spacing: 5
+
+    Image:
+        id: poster
+        source: ''
+        allow_stretch: True
+        keep_ratio: True
+        size_hint_y: None
+        height: 240
+
+    Label:
+        id: title_label
+        text: ''
+        size_hint_y: None
+        height: 30
+        color: text_color
+
+    Label:
+        id: tags_label
+        text: ''
+        size_hint_y: None
+        height: 20
+        font_size: '12sp'
+        color: text_color
+
+<FileChooserPopup>:
+    title: 'Choose File'
+    size_hint: .9, .9
+    auto_dismiss: False
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 8
+        padding: 8
+
+        FileChooserListView:
+            id: filechooser
+            # filters and multiselect set from python
+
+        TextInput:
+            id: filename_input
+            hint_text: 'Filename (for save)'
+            size_hint_y: None
+            height: 40
+
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            spacing: 8
+            Button:
+                text: 'Select'
+                on_release: root._select_file()
+            Button:
+                text: 'Cancel'
+                on_release: root.dismiss()
+
+<ExportPopup>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 10
+        Button:
+            id: export_button
+            text: 'Export to JSON'
+            size_hint_y: None
+            height: 40
+            on_press: root.export_json(self)
+        Button:
+            id: close_button
+            text: 'Close'
+            size_hint_y: None
+            height: 40
+            on_press: root.close_popup(self)
+
+<ImportPopup>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 10
+        Button:
+            id: import_button
+            text: 'Import from JSON'
+            size_hint_y: None
+            height: 40
+            on_press: root.import_json(self)
+        Button:
+            id: close_button
+            text: 'Close'
+            size_hint_y: None
+            height: 40
+            on_press: root.close_popup(self)
+
+<TagFilterPopup>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 10
+        ScrollView:
+            do_scroll_x: False
+            BoxLayout:
+                id: tags_box
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            spacing: 10
+            Button:
+                text: 'Apply'
+                on_release: root.apply_filters()
+            Button:
+                text: 'Cancel'
+                on_release: root.close_popup()
+
+<DetailPopup>:
+    size_hint: .9, .9
+    auto_dismiss: True
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 10
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            Label:
+                id: detail_title
+                text: ''
+            Button:
+                text: '✖'
+                size_hint_x: None
+                width: 40
+                on_release: root.dismiss()
+        Image:
+            id: detail_poster
+            source: ''
+            size_hint_y: None
+            height: 360
+            allow_stretch: True
+            keep_ratio: True
+        Carousel:
+            id: detail_carousel
+            direction: 'right'
+            size_hint_y: None
+            height: 240
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: 140
+            spacing: 6
+            Label:
+                id: detail_tags
+                text: ''
+                size_hint_y: None
+                height: 20
+            ScrollView:
+                do_scroll_x: False
+                Label:
+                    id: detail_description
+                    text: ''
+                    size_hint_y: None
+                    text_size: self.width, None
+                    height: self.texture_size[1]
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                spacing: 10
+                Button:
+                    text: 'Edit'
+                    on_release: root.on_edit()
+                Button:
+                    text: 'Delete'
+                    on_release: root.on_delete()
+
+<MainScreen>:
+    canvas.before:
+        Color:
+            rgba: bg_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 10
+
+        # Custom title bar
+        BoxLayout:
+            size_hint_y: None
+            height: 40
+            canvas.before:
+                Color:
+                    rgba: secondary_color
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            DraggableTitleBar:
+                size_hint_x: 1
+
+            Label:
+                text: 'Anime Collection'
+                size_hint_x: None
+                width: 200
+                color: text_color
+            
+            DraggableTitleBar:
+                size_hint_x: 1
+
+            Button:
+                text: '✖'
+                size_hint_x: None
+                width: 40
+                background_color: accent_color
+                on_press: app.stop()
+
+        # Controls bar
+        BoxLayout:
+            size_hint_y: None
+            height: 60
+            spacing: 20
+            padding: [20, 5]
+            canvas.before:
+                Color:
+                    rgba: secondary_color
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            TextInput:
+                id: search_input
+                hint_text: 'Search anime...'
+                size_hint_x: 0.25
+                on_text: root.on_search_text(self, self.text)
+
+            Spinner:
+                id: anime_spinner
+                text: 'Select Anime'
+                values: ['Select Anime']
+                size_hint_x: 0.2
+                on_text: root.on_spinner_select(self, self.text)
+
+            Spinner:
+                id: tag_filter
+                text: 'All'
+                values: ['All']
+                size_hint_x: 0.15
+                on_text: root.on_tag_select(self, self.text)
+
+            Button:
+                id: tag_multi_btn
+                text: 'Tags'
+                size_hint_x: 0.12
+                on_press: root.open_tag_filter(self)
+
+            Spinner:
+                id: sort_spinner
+                text: 'Sort'
+                values: ['A-Z', 'Z-A', 'Date Added']
+                size_hint_x: 0.2
+                on_text: root.on_sort_select(self, self.text)
+
+            Button:
+                text: 'Add'
+                size_hint_x: 0.1
+                on_press: root.add_anime(self)
+
+            Button:
+                text: 'Edit'
+                size_hint_x: 0.1
+                on_press: root.edit_anime(self)
+
+            Button:
+                text: 'Import'
+                size_hint_x: 0.15
+                on_press: root.import_data(self)
+
+            Button:
+                text: 'Export'
+                size_hint_x: 0.15
+                on_press: root.export_data(self)
+
+        # Content area
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 20
+            padding: [10, 0]
+
+            # Scrollable grid for anime cards
+            ScrollView:
+                size_hint_x: 0.7
+                do_scroll_x: False
+                canvas.before:
+                    Color:
+                        rgba: secondary_color
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                
+                GridLayout:
+                    id: grid_layout
+                    cols: 3
+                    spacing: 15
+                    padding: 10
+                    size_hint_y: None
+                    height: self.minimum_height
+
+            # Details panel
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.3
+                spacing: 10
+                padding: 10
+                canvas.before:
+                    Color:
+                        rgba: secondary_color
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                Image:
+                    id: current_poster
+                    source: ''
+                    size_hint_y: 0.4
+                    allow_stretch: True
+                    keep_ratio: True
+
+                Label:
+                    id: current_title
+                    text: 'Select an anime'
+                    size_hint_y: None
+                    height: 40
+                    color: text_color
+
+                Label:
+                    id: current_tags
+                    text: ''
+                    size_hint_y: None
+                    height: 30
+                    color: text_color
+
+                ScrollView:
+                    size_hint_y: 0.3
+                    do_scroll_x: False
+                    
+                    Label:
+                        id: current_description
+                        text: ''
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+                        padding: [10, 10]
+                        color: text_color
+
+                Carousel:
+                    id: screenshots_carousel
+                    direction: 'right'
+                    size_hint_y: 0.2
+
+                Button:
+                    text: 'Delete Anime'
+                    size_hint_y: None
+                    height: 40
+                    background_color: accent_color
+                    on_press: root.delete_anime(self)
+
+<AddAnimePopup>:
+    title_input: title_input
+    description_input: description_input
+    poster_input: poster_input
+    screenshots_input: screenshots_input
+    tags_input: tags_input
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 15
+        padding: 20
+
+        Label:
+            text: 'Add New Anime'
+            size_hint_y: None
+            height: 40
+            font_size: '20sp'
+            color: text_color
+
+        GridLayout:
+            cols: 1
+            spacing: 10
+            size_hint_y: 0.9
+
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                spacing: 10
+                
+                Label:
+                    text: 'Title:'
+                    size_hint_x: 0.2
+                
+                TextInput:
+                    id: title_input
+                    hint_text: 'Enter anime title'
+                    size_hint_x: 0.8
+                    multiline: False
+
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                spacing: 10
+                
+                Label:
+                    text: 'Poster:'
+                    size_hint_x: 0.2
+                
+                TextInput:
+                    id: poster_input
+                    hint_text: 'Enter poster path'
+                    size_hint_x: 0.6
+                    multiline: False
+                
+                Button:
+                    text: 'Browse'
+                    size_hint_x: 0.2
+                    on_press: root.select_poster(self)
+
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                spacing: 10
+                
+                Label:
+                    text: 'Screenshots:'
+                    size_hint_x: 0.2
+                
+                TextInput:
+                    id: screenshots_input
+                    hint_text: 'Enter screenshot paths (comma separated)'
+                    size_hint_x: 0.6
+                    multiline: False
+
+                Button:
+                    text: 'Browse'
+                    size_hint_x: 0.2
+                    on_press: root.select_screenshots(self)
+
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                spacing: 10
+                
+                Label:
+                    text: 'Tags:'
+                    size_hint_x: 0.2
+
+                TextInput:
+                    id: tags_input
+                    hint_text: 'Enter tags (comma separated)'
+                    size_hint_x: 0.8
+                    multiline: False
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+                
+                Label:
+                    text: 'Description:'
+                    size_hint_y: None
+                    height: 30
+                    halign: 'left'
+                
+                TextInput:
+                    id: description_input
+                    hint_text: 'Enter anime description'
+                    multiline: True
+                    size_hint_y: 1
+
+        BoxLayout:
+            size_hint_y: None
+            height: 50
+            spacing: 20
+            padding: [40, 0]
+
+            Button:
+                text: 'Save'
+                size_hint_x: 0.5
+                on_press: root.save_anime(self)
+
+            Button:
+                text: 'Cancel'
+                size_hint_x: 0.5
+                on_press: root.close_popup()
+
+<EditAnimePopup>:
+    title_input: title_input
+    description_input: description_input
+    poster_input: poster_input
+    screenshots_input: screenshots_input
+    tags_input: tags_input
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 15
+        padding: 20
+
+        Label:
+            text: 'Edit Anime'
+            size_hint_y: None
+            height: 40
+            font_size: '20sp'
+            color: text_color
+
+        GridLayout:
+            cols: 1
+            spacing: 10
+            size_hint_y: 0.9
+
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                spacing: 10
+                
+                Label:
+                    text: 'Title:'
+                    size_hint_x: 0.2
+                
+                TextInput:
+                    id: title_input
+                    hint_text: 'Enter anime title'
+                    size_hint_x: 0.8
+                    multiline: False
+
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                spacing: 10
+                
+                Label:
+                    text: 'Poster:'
+                    size_hint_x: 0.2
+                
+                TextInput:
+                    id: poster_input
+                    hint_text: 'Enter poster path'
+                    size_hint_x: 0.6
+                    multiline: False
+                
+                Button:
+                    text: 'Browse'
+                    size_hint_x: 0.2
+                    on_press: root.select_poster(self)
+
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                spacing: 10
+                
+                Label:
+                    text: 'Screenshots:'
+                    size_hint_x: 0.2
+                
+                TextInput:
+                    id: screenshots_input
+                    hint_text: 'Enter screenshot paths (comma separated)'
+                    size_hint_x: 0.6
+                    multiline: False
+
+                Button:
+                    text: 'Browse'
+                    size_hint_x: 0.2
+                    on_press: root.select_screenshots(self)
+
+            BoxLayout:
+                size_hint_y: None
+                height: 40
+                spacing: 10
+                
+                Label:
+                    text: 'Tags:'
+                    size_hint_x: 0.2
+
+                TextInput:
+                    id: tags_input
+                    hint_text: 'Enter tags (comma separated)'
+                    size_hint_x: 0.8
+                    multiline: False
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+                
+                Label:
+                    text: 'Description:'
+                    size_hint_y: None
+                    height: 30
+                    halign: 'left'
+                
+                TextInput:
+                    id: description_input
+                    hint_text: 'Enter anime description'
+                    multiline: True
+                    size_hint_y: 1
+
+        BoxLayout:
+            size_hint_y: None
+            height: 50
+            spacing: 20
+            padding: [40, 0]
+
+            Button:
+                text: 'Save'
+                size_hint_x: 0.5
+                on_press: root.save_anime(self)
+
+            Button:
+                text: 'Cancel'
+                size_hint_x: 0.5
+                on_press: root.close_popup()

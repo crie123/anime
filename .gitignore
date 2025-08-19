@@ -1,0 +1,47 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.vscode/
+.idea/
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+
+# Python packaging
+*.whl
+
+# Logs, databases, settings
+*.log
+deletion.log
+anime.db
+.env
+settings.json
+
+# Thumbnails, copies and generated media
+thumbnails/
+copies/
+
+# Kivy cache
+.kivy/
+
+# Test / coverage
+.coverage
+.pytest_cache/
+
+# Misc
+*.sqlite3
