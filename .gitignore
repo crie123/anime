@@ -21,6 +21,11 @@ Thumbs.db
 build/
 dist/
 *.egg-info/
+*.spec
+
+# PyInstaller artifacts
+*.manifest
+*.pyd
 
 # Python packaging
 *.whl

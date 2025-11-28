@@ -14,12 +14,13 @@ import threading
 import functools
 
 from utils import regen_copies_for_paths, get_copy_path, regen_thumbnails_for_paths, copy_source_to_local, get_thumbnail_path, create_thumbnail, ensure_thumbs_dir, delete_thumbnail, delete_copy
+from localization import tr
 
 class FileChooserPopup(Popup):
     def __init__(self, callback, multiple=False, save_mode=False, filters=None, owner=None, initial_path=None, **kwargs):
         # KV provides the layout (ids: filechooser, filename_input, select_btn, cancel_btn, drives_layout)
         super(FileChooserPopup, self).__init__(**kwargs)
-        self.title = 'Choose File'
+        self.title = tr('Choose File')
         self.size_hint = (0.9, 0.9)
         self.callback = callback
         self.save_mode = save_mode
@@ -187,7 +188,7 @@ class AddAnimePopup(BoxLayout):
         screenshots_paths = [s.strip() for s in self.ids.screenshots_input.text.split(',') if s.strip()]
         tags = [t.strip() for t in self.ids.tags_input.text.split(',') if t.strip()]
         if not title:
-            self.main_screen.show_message('Validation Error', 'Title is required')
+            self.main_screen.show_message(tr('Validation Error'), tr('Title is required'))
             return
 
         try:
@@ -214,7 +215,7 @@ class AddAnimePopup(BoxLayout):
         if hasattr(self, 'popup'):
             self.popup.dismiss()
             self.main_screen.refresh_content()
-            self.main_screen.show_message('Added', f"Anime '{title}' added")
+            self.main_screen.show_message(tr('Added'), tr(f"Anime '{title}' added"))
 
     def close_popup(self, instance=None):
         if hasattr(self, 'popup'):
@@ -232,7 +233,7 @@ class EditAnimePopup(BoxLayout):
     def _populate_delayed(self, dt):
         try:
             self.current_title = self.main_screen.ids.current_title.text
-            if self.current_title and self.current_title != 'Select an anime':
+            if self.current_title and self.current_title != tr('Select an anime'):
                 current_anime = self.db.get_anime_by_title(self.current_title)
                 if current_anime:
                     anime = current_anime[0]
@@ -309,7 +310,7 @@ class EditAnimePopup(BoxLayout):
         screenshots_paths = [s.strip() for s in self.ids.screenshots_input.text.split(',') if s.strip()]
         tags = [t.strip() for t in self.ids.tags_input.text.split(',') if t.strip()]
         if not title:
-            self.main_screen.show_message('Validation Error', 'Title is required')
+            self.main_screen.show_message(tr('Validation Error'), tr('Title is required'))
             return
 
         try:
@@ -362,7 +363,7 @@ class EditAnimePopup(BoxLayout):
             self.popup.dismiss()
         try:
             self.main_screen.refresh_content()
-            self.main_screen.show_message('Updated', f"Anime '{title}' updated")
+            self.main_screen.show_message(tr('Updated'), tr(f"Anime '{title}' updated"))
         except Exception:
             pass
 
@@ -375,6 +376,24 @@ class ExportPopup(BoxLayout):
         super(ExportPopup, self).__init__(**kwargs)
         self.db = db
         self.owner = owner
+        # Apply binding after kv applied
+        Clock.schedule_once(self._apply_binding, 0)
+
+    def _apply_binding(self, dt):
+        try:
+            from kivy.app import App
+            app = App.get_running_app()
+            # Bind button texts to update dynamically
+            if hasattr(self.ids, 'export_button'):
+                def update_export(*args):
+                    self.ids.export_button.text = app.str_export_to_json
+                app.bind(str_export_to_json=update_export)
+            if hasattr(self.ids, 'close_button'):
+                def update_close(*args):
+                    self.ids.close_button.text = app.str_close
+                app.bind(str_close=update_close)
+        except Exception:
+            pass
 
     def export_json(self, instance):
         initial = self.owner.settings.get('last_dir') if self.owner and hasattr(self.owner, 'settings') else None
@@ -391,19 +410,19 @@ class ExportPopup(BoxLayout):
                     json.dump(self.db.export_to_json(), f, ensure_ascii=False, indent=2)
                 try:
                     with open('export_log.txt', 'a', encoding='utf-8') as lf:
-                        lf.write(f"Exported {len(self.db.export_to_json())} records to {path}\n")
+                        lf.write(tr(f"Exported {len(self.db.export_to_json())} records to {path}\n"))
                 except Exception:
                     pass
-                self._show_result('Export Successful', f'Exported to {path}')
+                self._show_result(tr('Export Successful'), tr(f'Exported to {path}'))
             except Exception as e:
-                self._show_result('Export Failed', str(e))
+                self._show_result(tr('Export Failed'), str(e))
         if hasattr(self, 'popup'):
             self.popup.dismiss()
 
     def _show_result(self, title, message):
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
         content.add_widget(Label(text=message))
-        btn = Button(text='OK', size_hint_y=None, height=40)
+        btn = Button(text=tr('OK'), size_hint_y=None, height=40)
         content.add_widget(btn)
         popup = Popup(title=title, content=content, size_hint=(0.5, 0.3))
         btn.bind(on_release=popup.dismiss)
@@ -418,6 +437,24 @@ class ImportPopup(BoxLayout):
         super(ImportPopup, self).__init__(**kwargs)
         self.db = db
         self.main_screen = main_screen
+        # Apply binding after kv applied
+        Clock.schedule_once(self._apply_binding, 0)
+
+    def _apply_binding(self, dt):
+        try:
+            from kivy.app import App
+            app = App.get_running_app()
+            # Bind button texts to update dynamically
+            if hasattr(self.ids, 'import_button'):
+                def update_import(*args):
+                    self.ids.import_button.text = app.str_import_from_json
+                app.bind(str_import_from_json=update_import)
+            if hasattr(self.ids, 'close_button'):
+                def update_close(*args):
+                    self.ids.close_button.text = app.str_close
+                app.bind(str_close=update_close)
+        except Exception:
+            pass
 
     def import_json(self, instance):
         initial = self.main_screen.settings.get('last_dir') if hasattr(self.main_screen, 'settings') else None
@@ -431,8 +468,8 @@ class ImportPopup(BoxLayout):
             return
         path = paths[0]
         progress_content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        progress_content.add_widget(Label(text='Importing...'))
-        prog = Popup(title='Importing', content=progress_content, size_hint=(0.4, 0.2), auto_dismiss=False)
+        progress_content.add_widget(Label(text=tr('Importing...')))
+        prog = Popup(title=tr('Importing'), content=progress_content, size_hint=(0.4, 0.2), auto_dismiss=False)
         prog.open()
 
         def do_import():
@@ -440,19 +477,19 @@ class ImportPopup(BoxLayout):
                 with open(path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 if not isinstance(data, list):
-                    raise ValueError('Imported JSON must be a list of anime entries')
+                    raise ValueError(tr('Imported JSON must be a list of anime entries'))
                 report = self.db.import_from_json(data)
                 def finish(dt):
                     prog.dismiss()
                     self.main_screen.refresh_content()
-                    msg = f"Imported: {report.get('imported', 0)}. Skipped: {report.get('skipped', 0)}."
+                    msg = tr(f"Imported: {report.get('imported', 0)}. Skipped: {report.get('skipped', 0)}.")
                     if report.get('errors'):
                         errs = report.get('errors')
-                        msg += '\nErrors:\n' + '\n'.join(errs[:10])
-                    title = 'Import Successful' if not report.get('errors') else 'Import Completed with errors'
+                        msg += tr('\nErrors:\n') + '\n'.join(errs[:10])
+                    title = tr('Import Successful') if not report.get('errors') else tr('Import Completed with errors')
                     try:
                         with open('import_log.txt', 'a', encoding='utf-8') as lf:
-                            lf.write(f"Imported {report.get('imported',0)} records from {path}; skipped {report.get('skipped',0)}\n")
+                            lf.write(tr(f"Imported {report.get('imported',0)} records from {path}; skipped {report.get('skipped',0)}\n"))
                     except Exception:
                         pass
                     self._show_result(title, msg)
@@ -460,7 +497,7 @@ class ImportPopup(BoxLayout):
             except Exception as e:
                 def fail(dt):
                     prog.dismiss()
-                    self._show_result('Import Failed', str(e))
+                    self._show_result(tr('Import Failed'), str(e))
                 Clock.schedule_once(fail, 0)
 
         threading.Thread(target=do_import, daemon=True).start()
@@ -470,7 +507,7 @@ class ImportPopup(BoxLayout):
     def _show_result(self, title, message):
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
         content.add_widget(Label(text=message))
-        btn = Button(text='OK', size_hint_y=None, height=40)
+        btn = Button(text=tr('OK'), size_hint_y=None, height=40)
         content.add_widget(btn)
         popup = Popup(title=title, content=content, size_hint=(0.5, 0.3))
         btn.bind(on_release=popup.dismiss)
@@ -513,7 +550,7 @@ class TagFilterPopup(BoxLayout):
             if chosen:
                 self.owner.ids.tag_multi_btn.text = ', '.join(chosen[:3]) + (',...' if len(chosen) > 3 else '')
             else:
-                self.owner.ids.tag_multi_btn.text = 'Tags'
+                self.owner.ids.tag_multi_btn.text = tr('Tags')
             self.owner.load_anime_cards(search_query=self.owner.ids.search_input.text, tag_filter=chosen)
             self.owner.save_settings()
             if hasattr(self, 'popup'):

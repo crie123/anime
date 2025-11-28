@@ -17,11 +17,12 @@ from kivy.core.window import Window
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.image import Image as CoreImage
 from kivy.graphics import Color, Rectangle
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, StringProperty
 from kivy.uix.filechooser import FileChooserListView
 from database import AnimeDatabase
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
+from localization import set_language, tr
 import json
 import ctypes
 import os
@@ -244,9 +245,190 @@ class AnimeCard(ButtonBehavior, BoxLayout):
             pass
 
 class AnimeApp(App):
+    is_dark_theme = BooleanProperty(True)
+    primary_color = ListProperty([0.2, 0.6, 0.9, 1])
+    secondary_color = ListProperty([0.15, 0.15, 0.15, 1])
+    accent_color = ListProperty([0.9, 0.3, 0.3, 1])
+    text_color = ListProperty([0.9, 0.9, 0.9, 1])
+    bg_color = ListProperty([0.1, 0.1, 0.1, 1])
+    input_bg_color = ListProperty([0.2, 0.2, 0.2, 1])
+    current_language = StringProperty('en')
+    
+    # Translatable strings as properties
+    str_add = StringProperty('Add')
+    str_edit = StringProperty('Edit')
+    str_delete = StringProperty('Delete')
+    str_import = StringProperty('Import')
+    str_export = StringProperty('Export')
+    str_search = StringProperty('Search anime...')
+    str_tags = StringProperty('Tags')
+    str_sort = StringProperty('Sort')
+    str_select_anime = StringProperty('Select Anime')
+    str_a_z = StringProperty('A-Z')
+    str_z_a = StringProperty('Z-A')
+    str_date_added = StringProperty('Date Added')
+    str_all = StringProperty('All')
+    str_select_an_anime = StringProperty('Select an anime')
+    str_delete_anime = StringProperty('Delete Anime')
+    str_add_new_anime = StringProperty('Add New Anime')
+    str_edit_anime = StringProperty('Edit Anime')
+    str_title = StringProperty('Title:')
+    str_poster = StringProperty('Poster:')
+    str_screenshots = StringProperty('Screenshots:')
+    str_description = StringProperty('Description:')
+    str_browse = StringProperty('Browse')
+    str_tags_label = StringProperty('Tags:')
+    str_enter_anime_title = StringProperty('Enter anime title')
+    str_enter_poster_path = StringProperty('Enter poster path')
+    str_enter_screenshot_paths = StringProperty('Enter screenshot paths (comma separated)')
+    str_enter_anime_description = StringProperty('Enter anime description')
+    str_enter_tags_input = StringProperty('Enter tags (comma separated)')
+    str_save = StringProperty('Save')
+    str_cancel = StringProperty('Cancel')
+
+    # Additional strings for popups and messages
+    str_export_to_json = StringProperty('Export to JSON')
+    str_import_from_json = StringProperty('Import from JSON')
+    str_confirm_delete = StringProperty('Confirm Delete')
+    str_filter_by_tags = StringProperty('Filter by tags')
+    str_apply = StringProperty('Apply')
+    str_ok = StringProperty('OK')
+    str_yes = StringProperty('Yes')
+    str_no = StringProperty('No')
+    str_close = StringProperty('Close')
+    str_importing = StringProperty('Importing...')
+    str_exported_to = StringProperty('Exported to {}')
+    str_import_successful = StringProperty('Import Successful')
+    str_import_failed = StringProperty('Import Failed')
+    str_export_successful = StringProperty('Export Successful')
+    str_export_failed = StringProperty('Export Failed')
+    str_validation_error = StringProperty('Validation Error')
+    str_title_required = StringProperty('Title is required')
+    
+    # Additional dynamic labels
+    str_no_anime_available = StringProperty('No anime available')
+    str_bulk_delete = StringProperty('Bulk Delete')
+    str_bulk_edit = StringProperty('Bulk Edit')
+    str_delete_items = StringProperty('Delete items?')
+    str_no_items_selected = StringProperty('No items selected')
+    str_enter_tags = StringProperty('Enter tags (comma separated) to set for selected items')
+    str_bulk_edit_tags = StringProperty('Bulk Edit Tags')
+    
+    # Delete button
+    str_delete_button = StringProperty('Delete Anime')
+
     def build(self):
         self.db = AnimeDatabase()
+        # Initialize all translatable strings
+        self._update_strings()
         return MainScreen(db=self.db)
+
+    def toggle_theme(self):
+        """Toggle between dark and light theme"""
+        try:
+            if self.is_dark_theme:
+                # Switch to light theme
+                self.is_dark_theme = False
+                self.secondary_color = [0.95, 0.95, 0.95, 1]  # Light gray
+                self.text_color = [0.1, 0.1, 0.1, 1]  # Dark text
+                self.bg_color = [0.98, 0.98, 0.98, 1]  # Very light gray
+                self.input_bg_color = [0.9, 0.9, 0.9, 1]  # Slightly darker light
+            else:
+                # Switch to dark theme
+                self.is_dark_theme = True
+                self.secondary_color = [0.15, 0.15, 0.15, 1]  # Dark Gray
+                self.text_color = [0.9, 0.9, 0.9, 1]  # Light text
+                self.bg_color = [0.1, 0.1, 0.1, 1]  # Very Dark Gray
+                self.input_bg_color = [0.2, 0.2, 0.2, 1]  # Slightly lighter dark
+            
+            # Save theme preference to settings
+            if hasattr(self.root, 'settings'):
+                self.root.settings['theme'] = 'light' if not self.is_dark_theme else 'dark'
+                self.root.save_settings()
+        except Exception as e:
+            pass
+
+    def toggle_language(self):
+        """Toggle between English and Russian"""
+        try:
+            if self.current_language == 'en':
+                self.current_language = 'ru'
+                set_language('ru')
+            else:
+                self.current_language = 'en'
+                set_language('en')
+            
+            # Update all translatable strings
+            self._update_strings()
+            
+            # Save language preference to settings
+            if hasattr(self.root, 'settings'):
+                self.root.settings['language'] = self.current_language
+                self.root.save_settings()
+        except Exception as e:
+            pass
+
+    def _update_strings(self):
+        """Update all UI strings based on current language"""
+        try:
+            self.str_add = tr('add')
+            self.str_edit = tr('edit')
+            self.str_delete = tr('delete')
+            self.str_import = tr('import')
+            self.str_export = tr('export')
+            self.str_search = tr('search')
+            self.str_tags = tr('tags')
+            self.str_sort = tr('sort')
+            self.str_select_anime = tr('select_anime')
+            self.str_a_z = tr('a_z')
+            self.str_z_a = tr('z_a')
+            self.str_date_added = tr('date_added')
+            self.str_all = tr('all')
+            self.str_select_an_anime = tr('select_an_anime')
+            self.str_delete_anime = tr('delete_anime')
+            self.str_add_new_anime = tr('add_new_anime')
+            self.str_edit_anime = tr('edit_anime')
+            self.str_title = tr('title')
+            self.str_poster = tr('poster')
+            self.str_screenshots = tr('screenshots')
+            self.str_description = tr('description')
+            self.str_browse = tr('browse')
+            self.str_tags_label = tr('tags_label')
+            self.str_enter_anime_title = tr('enter_anime_title')
+            self.str_enter_poster_path = tr('enter_poster_path')
+            self.str_enter_screenshot_paths = tr('enter_screenshot_paths')
+            self.str_enter_anime_description = tr('enter_anime_description')
+            self.str_enter_tags_input = tr('enter_tags_input')
+            self.str_save = tr('save')
+            self.str_cancel = tr('cancel')
+            # Additional strings for popups
+            self.str_export_to_json = tr('export_to_json')
+            self.str_import_from_json = tr('import_from_json')
+            self.str_confirm_delete = tr('confirm_delete')
+            self.str_filter_by_tags = tr('filter_by_tags')
+            self.str_apply = tr('apply')
+            self.str_ok = tr('ok')
+            self.str_yes = tr('yes')
+            self.str_no = tr('no')
+            self.str_close = tr('close')
+            self.str_importing = tr('importing')
+            self.str_import_successful = tr('import_successful')
+            self.str_import_failed = tr('import_failed')
+            self.str_export_successful = tr('export_successful')
+            self.str_export_failed = tr('export_failed')
+            self.str_validation_error = tr('validation_error')
+            self.str_title_required = tr('title_required')
+            # Additional dynamic labels
+            self.str_no_anime_available = tr('no_anime_available')
+            self.str_bulk_delete = tr('bulk_delete')
+            self.str_bulk_edit = tr('bulk_edit')
+            self.str_delete_items = tr('delete_items')
+            self.str_no_items_selected = tr('no_items_selected')
+            self.str_enter_tags = tr('enter_tags')
+            self.str_bulk_edit_tags = tr('bulk_edit_tags')
+            self.str_delete_button = tr('delete_anime')
+        except Exception as e:
+            pass
 
 class MainScreen(Screen):
     def __init__(self, db, **kwargs):
@@ -280,6 +462,11 @@ class MainScreen(Screen):
             self.sort_reverse = self.settings.get('sort_reverse', False)
             self.current_tag = self.settings.get('selected_tag', None)
             self.current_tags = self.settings.get('selected_tags', []) or []
+            # load language preference
+            language = self.settings.get('language', 'en')
+            if language in ['en', 'ru']:
+                set_language(language)
+                # ...existing code...
         except Exception:
             self.settings = {}
 
@@ -310,11 +497,11 @@ class MainScreen(Screen):
         try:
             # sort spinner
             if self.current_sort == 'title' and not self.sort_reverse:
-                self.ids.sort_spinner.text = 'A-Z'
+                self.ids.sort_spinner.text = tr('a_z')
             elif self.current_sort == 'title' and self.sort_reverse:
-                self.ids.sort_spinner.text = 'Z-A'
+                self.ids.sort_spinner.text = tr('z_a')
             elif self.current_sort == 'date':
-                self.ids.sort_spinner.text = 'Date Added'
+                self.ids.sort_spinner.text = tr('date_added')
             # tag spinner
             if self.current_tag:
                 self.ids.tag_filter.text = self.current_tag
@@ -322,7 +509,7 @@ class MainScreen(Screen):
             if self.current_tags:
                 self.ids.tag_multi_btn.text = ', '.join(self.current_tags[:3]) + (',...' if len(self.current_tags) > 3 else '')
             else:
-                self.ids.tag_multi_btn.text = 'Tags'
+                self.ids.tag_multi_btn.text = tr('tags')
         except Exception:
             pass
         # apply saved window geometry if exists
@@ -431,18 +618,43 @@ class MainScreen(Screen):
 
     def bulk_delete(self, instance=None):
         if not self.selected_cards:
-            self.show_message('Bulk Delete', 'No items selected')
+            from kivy.app import App
+            app = App.get_running_app()
+            self.show_message(app.str_bulk_delete, app.str_no_items_selected)
             return
         titles = [c.anime_data.get('title') for c in list(self.selected_cards)]
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        content.add_widget(Label(text=f'Delete {len(titles)} items?'))
+        from kivy.app import App
+        app = App.get_running_app()
+        
+        # Create label with binding to update dynamically
+        msg_label = Label(text=f'{app.str_delete_items}: {len(titles)}')
+        def update_msg(*args):
+            msg_label.text = f'{app.str_delete_items}: {len(titles)}'
+        app.bind(str_delete_items=update_msg)
+        content.add_widget(msg_label)
+        
         btns = BoxLayout(size_hint_y=None, height=40, spacing=10)
-        ok = Button(text='Yes')
-        cancel = Button(text='No')
+        ok = Button(text=app.str_yes)
+        cancel = Button(text=app.str_no)
+        
+        # Bind button texts to update dynamically
+        def update_ok_text(*args):
+            ok.text = app.str_yes
+        def update_cancel_text(*args):
+            cancel.text = app.str_no
+        app.bind(str_yes=update_ok_text)
+        app.bind(str_no=update_cancel_text)
+        
         btns.add_widget(ok)
         btns.add_widget(cancel)
         content.add_widget(btns)
-        popup = Popup(title='Confirm Bulk Delete', content=content, size_hint=(0.4, 0.3))
+        popup = Popup(title=app.str_bulk_delete, content=content, size_hint=(0.4, 0.3))
+        
+        # Bind popup title to update dynamically
+        def update_title(*args):
+            popup.title = app.str_bulk_delete
+        app.bind(str_bulk_delete=update_title)
 
         def do_delete(inst):
             for t in titles:
@@ -481,20 +693,45 @@ class MainScreen(Screen):
 
     def bulk_edit(self, instance=None):
         if not self.selected_cards:
-            self.show_message('Bulk Edit', 'No items selected')
+            from kivy.app import App
+            app = App.get_running_app()
+            self.show_message(app.str_bulk_edit, app.str_no_items_selected)
             return
+        from kivy.app import App
+        app = App.get_running_app()
         content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-        content.add_widget(Label(text='Enter tags (comma separated) to set for selected items'))
+        
+        # Create label with binding to update dynamically
+        label = Label(text=app.str_enter_tags)
+        def update_label(*args):
+            label.text = app.str_enter_tags
+        app.bind(str_enter_tags=update_label)
+        content.add_widget(label)
+        
         from kivy.uix.textinput import TextInput
         ti = TextInput(multiline=False)
         content.add_widget(ti)
         btns = BoxLayout(size_hint_y=None, height=40, spacing=10)
-        ok = Button(text='Apply')
-        cancel = Button(text='Cancel')
+        ok = Button(text=app.str_apply)
+        cancel = Button(text=app.str_cancel)
+        
+        # Bind button texts to update dynamically
+        def update_ok_text(*args):
+            ok.text = app.str_apply
+        def update_cancel_text(*args):
+            cancel.text = app.str_cancel
+        app.bind(str_apply=update_ok_text)
+        app.bind(str_cancel=update_cancel_text)
+        
         btns.add_widget(ok)
         btns.add_widget(cancel)
         content.add_widget(btns)
-        popup = Popup(title='Bulk Edit Tags', content=content, size_hint=(0.5, 0.3))
+        popup = Popup(title=app.str_bulk_edit_tags, content=content, size_hint=(0.5, 0.3))
+        
+        # Bind popup title to update dynamically
+        def update_title(*args):
+            popup.title = app.str_bulk_edit_tags
+        app.bind(str_bulk_edit_tags=update_title)
 
         def apply_tags(inst):
             tags = [t.strip() for t in ti.text.split(',') if t.strip()]
@@ -640,17 +877,17 @@ class MainScreen(Screen):
 
     def delete_anime(self, instance):
         selected_title = self.ids.current_title.text
-        if selected_title and selected_title != 'Select an anime':
+        if selected_title and selected_title != tr('select_an_anime'):
             # show confirmation popup
             content = BoxLayout(orientation='vertical', spacing=10, padding=10)
-            content.add_widget(Label(text=f"Delete '{selected_title}'?"))
+            content.add_widget(Label(text=f"{tr('delete_title', selected_title)}"))
             btns = BoxLayout(size_hint_y=None, height=40, spacing=10)
-            btn_yes = Button(text='Yes')
-            btn_no = Button(text='No')
+            btn_yes = Button(text=tr('yes'))
+            btn_no = Button(text=tr('no'))
             btns.add_widget(btn_yes)
             btns.add_widget(btn_no)
             content.add_widget(btns)
-            popup = Popup(title='Confirm Delete', content=content, size_hint=(0.4, 0.3))
+            popup = Popup(title=tr('confirm_delete'), content=content, size_hint=(0.4, 0.3))
 
             def do_delete(instance):
                 # delete thumbnails for this anime (poster + screenshots)
@@ -789,3 +1026,4 @@ if __name__ == '__main__':
                 ms._stop_window_watch()
         except Exception:
             pass
+

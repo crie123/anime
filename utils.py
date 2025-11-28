@@ -9,7 +9,6 @@ import time
 THUMBS_DIR = os.path.join(os.getcwd(), 'thumbnails')
 # directory to keep local copies of original source images (so sources are available locally)
 COPIES_DIR = os.path.join(os.getcwd(), 'copies')
-LOG_PATH = os.path.join(os.getcwd(), 'deletion.log')
 
 def ensure_thumbs_dir():
     try:
@@ -20,13 +19,6 @@ def ensure_thumbs_dir():
 def ensure_copies_dir():
     try:
         os.makedirs(COPIES_DIR, exist_ok=True)
-    except Exception:
-        pass
-
-def _log_delete(msg):
-    try:
-        with open(LOG_PATH, 'a', encoding='utf-8') as lf:
-            lf.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {msg}\n")
     except Exception:
         pass
 
@@ -123,40 +115,33 @@ def delete_thumbnail(src_path):
     """
     try:
         if not src_path:
-            _log_delete(f"delete_thumbnail called with empty src_path")
             return False
         abs_src = os.path.abspath(src_path)
         removed = False
-        _log_delete(f"delete_thumbnail start for: {abs_src}")
         # candidate exact thumb for source
         try:
             thumb = get_thumbnail_path(abs_src)
-            _log_delete(f"checking exact thumb: {thumb}")
             if os.path.exists(thumb):
                 try:
                     os.remove(thumb)
                     removed = True
-                    _log_delete(f"removed exact thumb: {thumb}")
-                except Exception as e:
-                    _log_delete(f"failed remove exact thumb: {thumb} -> {e}")
-        except Exception as e:
-            _log_delete(f"error computing exact thumb: {e}")
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
         # candidate thumb for the copy path derived from source
         try:
             copy_path = get_copy_path(abs_src)
             thumb_copy = get_thumbnail_path(copy_path)
-            _log_delete(f"checking copy thumb: {thumb_copy}")
             if os.path.exists(thumb_copy):
                 try:
                     os.remove(thumb_copy)
                     removed = True
-                    _log_delete(f"removed copy thumb: {thumb_copy}")
-                except Exception as e:
-                    _log_delete(f"failed remove copy thumb: {thumb_copy} -> {e}")
-        except Exception as e:
+                except Exception:
+                    pass
+        except Exception:
             copy_path = None
-            _log_delete(f"error computing copy thumb: {e}")
 
         # Defensive: remove any thumbnail files containing basename tokens
         try:
@@ -173,17 +158,14 @@ def delete_thumbnail(src_path):
                             try:
                                 os.remove(fp)
                                 removed = True
-                                _log_delete(f"removed token-matched thumb: {fp} (token={token})")
-                            except Exception as e:
-                                _log_delete(f"failed remove token-matched thumb: {fp} -> {e}")
+                            except Exception:
+                                pass
                             break
-        except Exception as e:
-            _log_delete(f"error scanning thumbnails dir: {e}")
+        except Exception:
+            pass
 
-        _log_delete(f"delete_thumbnail finished for: {abs_src}, removed={removed}")
         return removed
-    except Exception as e:
-        _log_delete(f"delete_thumbnail unexpected error for {src_path}: {e}")
+    except Exception:
         return False
 
 def _try_remove(path, retries=3, delay=0.05):
@@ -205,12 +187,12 @@ def _try_remove(path, retries=3, delay=0.05):
                         pass
                     try:
                         os.remove(path)
-                    except Exception as e:
-                        _log_delete(f"_try_remove attempt {attempt} failed for {path}: {e}")
+                    except Exception:
+                        pass
                 if not os.path.exists(path):
                     return True
-        except Exception as e:
-            _log_delete(f"_try_remove unexpected error for {path}: {e}")
+        except Exception:
+            pass
         time.sleep(delay)
     # final check
     try:
@@ -228,12 +210,10 @@ def delete_copy(src_path):
     """
     try:
         if not src_path:
-            _log_delete(f"delete_copy called with empty src_path")
             return False
         abs_src = os.path.abspath(src_path)
         abs_copies = os.path.abspath(COPIES_DIR)
         removed_any = False
-        _log_delete(f"delete_copy start for: {abs_src}")
 
         # If src is already inside copies dir, try to remove it directly
         try:
@@ -243,12 +223,11 @@ def delete_copy(src_path):
                 if os.path.exists(abs_src):
                     try:
                         _try_remove(abs_src)
-                        _log_delete(f"removed direct copy: {abs_src}")
                         return True
-                    except Exception as e:
-                        _log_delete(f"failed remove direct copy: {abs_src} -> {e}")
-        except Exception as e:
-            _log_delete(f"error checking if src inside copies: {e}")
+                    except Exception:
+                        pass
+        except Exception:
+            pass
 
         # Try exact computed copy path
         try:
@@ -256,12 +235,11 @@ def delete_copy(src_path):
             if os.path.exists(cp):
                 try:
                     _try_remove(cp)
-                    _log_delete(f"removed computed copy: {cp}")
                     removed_any = True
-                except Exception as e:
-                    _log_delete(f"failed remove computed copy: {cp} -> {e}")
-        except Exception as e:
-            _log_delete(f"error computing/trying computed copy path: {e}")
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
         # Build normalized token for original
         try:
@@ -276,7 +254,6 @@ def delete_copy(src_path):
             while ob.startswith('copy_'):
                 ob = ob[len('copy_'):]
             orig_core = _normalize_name(ob)
-            _log_delete(f"orig_core='{orig_core}' (from {orig_base})")
 
             # scan copies dir and match
             if os.path.isdir(COPIES_DIR):
@@ -310,18 +287,15 @@ def delete_copy(src_path):
                             try:
                                 _try_remove(fp)
                                 removed_any = True
-                                _log_delete(f"removed matched copy file: {fp} (matched '{fn_normal}' vs '{orig_core}')")
-                            except Exception as e:
-                                _log_delete(f"failed remove matched copy: {fp} -> {e}")
-                    except Exception as e:
-                        _log_delete(f"error processing copy file '{fn}': {e}")
-        except Exception as e:
-            _log_delete(f"error scanning copies dir for deterministic matches: {e}")
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+        except Exception:
+            pass
 
-        _log_delete(f"delete_copy finished for: {abs_src}, removed_any={removed_any}")
         return removed_any
-    except Exception as e:
-        _log_delete(f"delete_copy unexpected error for {src_path}: {e}")
+    except Exception:
         return False
 
 def regen_thumbnails_for_paths(paths, size=(320, 320)):
@@ -417,13 +391,10 @@ def cleanup_unreferenced_copies(referenced_paths):
                     ok = _try_remove(fp)
                     if ok:
                         res['removed'].append(fp)
-                        _log_delete(f"cleanup removed: {fp}")
                     else:
                         res['failed'].append((fp, 'remove_failed'))
-                        _log_delete(f"cleanup failed to remove: {fp}")
                 except Exception as e:
                     res['failed'].append((fp, str(e)))
-                    _log_delete(f"cleanup exception for {fp}: {e}")
-    except Exception as e:
-        _log_delete(f"cleanup_unreferenced_copies unexpected error: {e}")
+    except Exception:
+        pass
     return res
