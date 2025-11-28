@@ -186,7 +186,7 @@ TRANSLATIONS = {
 ### Сборка в exe
 
 ```bash
-pyinstaller --onefile --windowed --icon=icon.ico --name=AnimeCollection main.py
+pyinstaller --name "AnimeCollection" --onefile --windowed --icon=NONE --add-data "anime.kv:." main.py
 ```
 
 **Параметры:**
@@ -194,6 +194,7 @@ pyinstaller --onefile --windowed --icon=icon.ico --name=AnimeCollection main.py
 - `--windowed` - запускает без консольного окна
 - `--icon=icon.ico` - добавляет иконку (опционально)
 - `--name=AnimeCollection` - имя исполняемого файла
+- `--add-data "anime.kv:."` - интерфейсный файл включается в exe!(без него просто закроется окно)
 
 **После сборки:**
 - Исполняемый файл находится в папке `dist/`

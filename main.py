@@ -118,16 +118,31 @@ class DetailPopup(ModalView):
                     from kivy.uix.image import AsyncImage
                     img = AsyncImage(source=img_src, allow_stretch=True, keep_ratio=True)
                     img._full_source = src
-                    # open original on touch
-                    def _open_full(inst, touch):
+                    # Store touch state to prevent multiple opens during scrolling
+                    img._touch_pos = None
+                    # open original on touch UP (not DOWN) to avoid scroll conflicts
+                    def _on_touch_down(inst, touch):
                         if inst.collide_point(*touch.pos):
-                            path = getattr(inst, '_full_source', None)
-                            if path and os.path.exists(path):
-                                try:
-                                    os.startfile(path)
-                                except Exception:
-                                    pass
-                    img.bind(on_touch_down=_open_full)
+                            inst._touch_pos = touch.pos
+                            return True
+                        return False
+                    def _on_touch_up(inst, touch):
+                        if inst.collide_point(*touch.pos) and inst._touch_pos:
+                            # Only open if touch didn't move much (wasn't a scroll)
+                            dx = abs(touch.x - inst._touch_pos[0])
+                            dy = abs(touch.y - inst._touch_pos[1])
+                            if dx < 5 and dy < 5:  # Less than 5 pixels movement
+                                path = getattr(inst, '_full_source', None)
+                                if path and os.path.exists(path):
+                                    try:
+                                        os.startfile(path)
+                                    except Exception:
+                                        pass
+                            inst._touch_pos = None
+                            return True
+                        return False
+                    img.bind(on_touch_down=_on_touch_down)
+                    img.bind(on_touch_up=_on_touch_up)
                     carousel.add_widget(img)
                 except Exception:
                     continue
@@ -936,19 +951,19 @@ class MainScreen(Screen):
         self.load_anime_cards(search_query=value, tag_filter=self.current_tags)  
 
     def on_sort_select(self, spinner, text):
-        if text == 'A-Z':
+        if text == tr('a_z'):
             self.current_sort = 'title'
             self.sort_reverse = False
-        elif text == 'Z-A':
+        elif text == tr('z_a'):
             self.current_sort = 'title'
             self.sort_reverse = True
-        elif text == 'Date Added':
+        elif text == tr('date_added'):
             self.current_sort = 'date'
             self.sort_reverse = True
         self.load_anime_cards(search_query=self.ids.search_input.text, tag_filter=self.current_tags)
 
     def on_tag_select(self, spinner, text):
-        self.current_tag = None if text == 'All' else text
+        self.current_tag = None if text == tr('all') else text
         self.load_anime_cards(search_query=self.ids.search_input.text, tag_filter=self.current_tag)
 
     def export_data(self, instance):
@@ -992,7 +1007,6 @@ class MainScreen(Screen):
                 changed = True
             if cur_pos != getattr(self, '_last_win_pos', None):
                 self._last_win_pos = cur_pos
-                self.settings['window_pos'] = cur_pos
                 changed = True
             if changed:
                 # write settings quickly
