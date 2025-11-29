@@ -517,9 +517,6 @@ class MainScreen(Screen):
                 self.ids.sort_spinner.text = tr('z_a')
             elif self.current_sort == 'date':
                 self.ids.sort_spinner.text = tr('date_added')
-            # tag spinner
-            if self.current_tag:
-                self.ids.tag_filter.text = self.current_tag
             # multi-tag button text update
             if self.current_tags:
                 self.ids.tag_multi_btn.text = ', '.join(self.current_tags[:3]) + (',...' if len(self.current_tags) > 3 else '')
@@ -592,10 +589,6 @@ class MainScreen(Screen):
         for anime in animes:
             card = AnimeCard(anime, self)
             grid_layout.add_widget(card)
-
-        # Update tag spinner values
-        all_tags = self.db.get_all_tags()
-        self.ids.tag_filter.values = ['All'] + all_tags
 
         # Update anime selector spinner values without force-resetting the user's selection
         anime_titles = [a['title'] for a in self.db.get_all_anime()]
@@ -961,10 +954,6 @@ class MainScreen(Screen):
             self.current_sort = 'date'
             self.sort_reverse = True
         self.load_anime_cards(search_query=self.ids.search_input.text, tag_filter=self.current_tags)
-
-    def on_tag_select(self, spinner, text):
-        self.current_tag = None if text == tr('all') else text
-        self.load_anime_cards(search_query=self.ids.search_input.text, tag_filter=self.current_tag)
 
     def export_data(self, instance):
         content = ExportPopup(self.db, owner=self)

@@ -356,17 +356,10 @@
                 size_hint_x: 0.2
                 on_text: root.on_spinner_select(self, self.text)
 
-            Spinner:
-                id: tag_filter
-                text: app.str_all
-                values: [app.str_all]
-                size_hint_x: 0.15
-                on_text: root.on_tag_select(self, self.text)
-
             Button:
                 id: tag_multi_btn
                 text: app.str_tags
-                size_hint_x: 0.12
+                size_hint_x: 0.27
                 on_press: root.open_tag_filter(self)
 
             Spinner:
