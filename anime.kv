@@ -309,26 +309,44 @@
 
             Button:
                 id: lang_btn
-                text: 'EN' if app.current_language == 'ru' else 'РУ'
                 size_hint_x: None
                 width: 50
                 background_color: app.primary_color
+                background_normal: ''
                 on_press: app.toggle_language()
+                Image:
+                    source: 'icons/Ru.png' if app.current_language == 'ru' else 'icons/Us.png'
+                    center_x: self.parent.center_x
+                    center_y: self.parent.center_y
+                    size_hint: None, None
+                    size: 30, 30
 
             Button:
                 id: theme_btn
-                text: 'MOON' if app.is_dark_theme else 'SUN'
                 size_hint_x: None
                 width: 50
                 background_color: app.primary_color
+                background_normal: ''
                 on_press: app.toggle_theme()
+                Image:
+                    source: 'icons/MoonOutlined.png' if app.is_dark_theme else 'icons/SunOutlined.png'
+                    center_x: self.parent.center_x
+                    center_y: self.parent.center_y
+                    size_hint: None, None
+                    size: 30, 30
 
             Button:
-                text: 'X'
                 size_hint_x: None
                 width: 40
                 background_color: app.accent_color
+                background_normal: ''
                 on_press: app.stop()
+                Image:
+                    source: 'icons/CloseCircleOutlined.png'
+                    center_x: self.parent.center_x
+                    center_y: self.parent.center_y
+                    size_hint: None, None
+                    size: 30, 30
 
         # Controls bar
         BoxLayout:
