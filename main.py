@@ -26,6 +26,7 @@ from localization import set_language, tr
 import json
 import ctypes
 import os
+import sys
 import threading
 import functools
 from utils import get_thumbnail_path, create_thumbnail, ensure_thumbs_dir, delete_thumbnail, regen_thumbnails_for_paths, copy_source_to_local, delete_copy, regen_copies_for_paths, get_copy_path
@@ -37,6 +38,20 @@ Window.size = (1600, 960)
 Window.borderless = True
 
 user32 = ctypes.windll.user32
+
+def get_resource_path(relative_path):
+    """
+    Get the path to a resource file.
+    Works both in development and when bundled with PyInstaller.
+    """
+    # When running as a PyInstaller bundle, sys._MEIPASS points to the temp folder
+    if hasattr(sys, '_MEIPASS'):
+        base_path = sys._MEIPASS
+    else:
+        # In development, use the directory of this script
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    
+    return os.path.join(base_path, relative_path)
 
 class DraggableTitleBar(Widget):
     def __init__(self, **kwargs):
@@ -269,6 +284,11 @@ class AnimeApp(App):
     input_bg_color = ListProperty([0.2, 0.2, 0.2, 1])
     current_language = StringProperty('en')
     
+    # Icon paths
+    lang_icon = StringProperty('')
+    theme_icon = StringProperty('')
+    close_icon = StringProperty('')
+    
     # Translatable strings as properties
     str_add = StringProperty('Add')
     str_edit = StringProperty('Edit')
@@ -336,7 +356,15 @@ class AnimeApp(App):
         self.db = AnimeDatabase()
         # Initialize all translatable strings
         self._update_strings()
+        # Initialize icon paths
+        self._update_icons()
         return MainScreen(db=self.db)
+
+    def _update_icons(self):
+        """Update icon paths based on current language and theme"""
+        self.lang_icon = get_resource_path(f'icons/{"Ru.png" if self.current_language == "ru" else "Us.png"}')
+        self.theme_icon = get_resource_path(f'icons/{"MoonOutlined.png" if self.is_dark_theme else "SunOutlined.png"}')
+        self.close_icon = get_resource_path('icons/CloseCircleOutlined.png')
 
     def toggle_theme(self):
         """Toggle between dark and light theme"""
@@ -355,6 +383,9 @@ class AnimeApp(App):
                 self.text_color = [0.9, 0.9, 0.9, 1]  # Light text
                 self.bg_color = [0.1, 0.1, 0.1, 1]  # Very Dark Gray
                 self.input_bg_color = [0.2, 0.2, 0.2, 1]  # Slightly lighter dark
+            
+            # Update theme icon
+            self._update_icons()
             
             # Save theme preference to settings
             if hasattr(self.root, 'settings'):
@@ -375,6 +406,9 @@ class AnimeApp(App):
             
             # Update all translatable strings
             self._update_strings()
+            
+            # Update language icon
+            self._update_icons()
             
             # Save language preference to settings
             if hasattr(self.root, 'settings'):

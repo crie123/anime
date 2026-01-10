@@ -315,7 +315,7 @@
                 background_normal: ''
                 on_press: app.toggle_language()
                 Image:
-                    source: 'icons/Ru.png' if app.current_language == 'ru' else 'icons/Us.png'
+                    source: app.lang_icon
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
                     size_hint: None, None
@@ -329,7 +329,7 @@
                 background_normal: ''
                 on_press: app.toggle_theme()
                 Image:
-                    source: 'icons/MoonOutlined.png' if app.is_dark_theme else 'icons/SunOutlined.png'
+                    source: app.theme_icon
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
                     size_hint: None, None
@@ -342,7 +342,7 @@
                 background_normal: ''
                 on_press: app.stop()
                 Image:
-                    source: 'icons/CloseCircleOutlined.png'
+                    source: app.close_icon
                     center_x: self.parent.center_x
                     center_y: self.parent.center_y
                     size_hint: None, None
