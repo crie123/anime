@@ -48,6 +48,14 @@ del AnimeCollection.spec 2>nul
 echo [OK] Cleaning completed
 
 echo.
+echo [INFO] Installing dependencies from requirements.txt...
+python -m pip install -q -r requirements.txt
+if errorlevel 1 (
+    echo [WARNING] Error installing some dependencies, continuing...
+)
+echo [OK] Dependencies installed
+
+echo.
 echo [INFO] Launching build...
 echo.
 
@@ -61,6 +69,8 @@ pyinstaller ^
     --hidden-import=kivy ^
     --hidden-import=pillow ^
     --hidden-import=tinydb ^
+    --hidden-import=win32timezone ^
+    --hidden-import=pywin32 ^
     main.py
 
 if errorlevel 1 (
