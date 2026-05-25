@@ -19,6 +19,8 @@ from kivy.uix.image import Image as CoreImage
 from kivy.graphics import Color, Rectangle
 from kivy.properties import ObjectProperty, BooleanProperty, ListProperty, StringProperty
 from kivy.uix.filechooser import FileChooserListView
+from kivy.animation import Animation
+from kivy.properties import NumericProperty
 from database import AnimeDatabase
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
@@ -38,6 +40,48 @@ Window.size = (1600, 960)
 Window.borderless = True
 
 user32 = ctypes.windll.user32
+
+class AutoScrollView(ScrollView):
+    """ScrollView with automatic text scrolling for long content"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._scroll_anim = None
+        # Bind to changes to detect when we need to scroll
+        Clock.schedule_once(self._check_scroll_needed, 0.2)
+    
+    def _check_scroll_needed(self, dt):
+        """Check if content needs scrolling"""
+        if not self.children:
+            return
+        
+        child = self.children[0]
+        if hasattr(child, 'texture_size'):
+            # If child is wider than view, start auto-scroll
+            if child.texture_size[0] > self.width - 10:
+                self._start_auto_scroll(child)
+    
+    def _start_auto_scroll(self, child):
+        """Start automatic scroll animation"""
+        if self._scroll_anim:
+            Animation.cancel_all(self._scroll_anim)
+        
+        # Calculate max scroll needed
+        if child.texture_size[0] <= 0:
+            return
+            
+        max_scroll = (child.texture_size[0] - self.width + 10) / child.texture_size[0]
+        if max_scroll <= 0:
+            return
+        
+        # Pause -> Scroll right -> Pause -> Scroll left -> Repeat
+        anim = Animation(duration=0.5)  # pause
+        anim += Animation(scroll_x=max_scroll, duration=4)  # scroll right
+        anim += Animation(duration=0.5)  # pause
+        anim += Animation(scroll_x=0, duration=4)  # scroll left
+        
+        anim.repeat = True
+        self._scroll_anim = anim
+        anim.start(self)
 
 def get_resource_path(relative_path):
     """

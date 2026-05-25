@@ -89,24 +89,40 @@
         size_hint_y: None
         height: 240
 
-    Label:
-        id: title_label
-        text: ''
+    AutoScrollView:
         size_hint_y: None
         height: 35
-        color: app.text_color
-        font_name: 'Arial'
-        font_size: '14sp'
-        bold: True
+        do_scroll_y: False
+        do_scroll_x: True
+        bar_width: 0
+        Label:
+            id: title_label
+            text: ''
+            size_hint_x: None
+            width: max(self.texture_size[0] + 20, self.parent.width) if self.parent else self.parent.width
+            size_hint_y: None
+            height: 35
+            color: app.text_color
+            font_name: 'Arial'
+            font_size: '14sp'
+            bold: True
 
-    Label:
-        id: tags_label
-        text: ''
+    AutoScrollView:
         size_hint_y: None
         height: 25
-        font_size: '11sp'
-        color: (0.8, 0.8, 0.8, 1)
-        font_name: 'Verdana'
+        do_scroll_y: False
+        do_scroll_x: True
+        bar_width: 0
+        Label:
+            id: tags_label
+            text: ''
+            size_hint_x: None
+            width: max(self.texture_size[0] + 20, self.parent.width) if self.parent else self.parent.width
+            size_hint_y: None
+            height: 25
+            font_size: '11sp'
+            color: (0.8, 0.8, 0.8, 1)
+            font_name: 'Verdana'
 
 <FileChooserPopup>:
     title: 'Choose File'
@@ -452,24 +468,40 @@
                     allow_stretch: True
                     keep_ratio: True
 
-                Label:
-                    id: current_title
-                    text: 'Select an anime'
+                AutoScrollView:
                     size_hint_y: None
                     height: 50
-                    color: app.text_color
-                    font_name: 'Arial'
-                    font_size: '16sp'
-                    bold: True
+                    do_scroll_y: False
+                    do_scroll_x: True
+                    bar_width: 0
+                    Label:
+                        id: current_title
+                        text: 'Select an anime'
+                        size_hint_x: None
+                        width: max(self.texture_size[0] + 20, self.parent.width) if self.parent else self.parent.width
+                        size_hint_y: None
+                        height: 50
+                        color: app.text_color
+                        font_name: 'Arial'
+                        font_size: '16sp'
+                        bold: True
 
-                Label:
-                    id: current_tags
-                    text: ''
+                AutoScrollView:
                     size_hint_y: None
                     height: 35
-                    color: (0.8, 0.8, 0.8, 1)
-                    font_name: 'Verdana'
-                    font_size: '12sp'
+                    do_scroll_y: False
+                    do_scroll_x: True
+                    bar_width: 0
+                    Label:
+                        id: current_tags
+                        text: ''
+                        size_hint_x: None
+                        width: max(self.texture_size[0] + 20, self.parent.width) if self.parent else self.parent.width
+                        size_hint_y: None
+                        height: 35
+                        color: (0.8, 0.8, 0.8, 1)
+                        font_name: 'Verdana'
+                        font_size: '12sp'
 
                 ScrollView:
                     size_hint_y: 0.3
