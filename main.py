@@ -39,6 +39,15 @@ from popups import FileChooserPopup, AddAnimePopup, EditAnimePopup, ExportPopup,
 Window.size = (1600, 960)
 Window.borderless = True
 
+def _get_base_dir():
+    """Get the base directory of the application (handles both exe and script execution)"""
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # Running from PyInstaller exe
+        return os.path.dirname(sys.executable)
+    else:
+        # Running as a script
+        return os.path.dirname(os.path.abspath(__file__))
+
 user32 = ctypes.windll.user32
 
 class AutoScrollView(ScrollView):

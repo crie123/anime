@@ -5,10 +5,20 @@ Creates a thumbnails/ directory in the project root and generates small versions
 import os
 import hashlib
 import time
+import sys
 
-THUMBS_DIR = os.path.join(os.getcwd(), 'thumbnails')
+def _get_base_dir():
+    """Get the base directory of the application (handles both exe and script execution)"""
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # Running from PyInstaller exe
+        return os.path.dirname(sys.executable)
+    else:
+        # Running as a script
+        return os.path.dirname(os.path.abspath(__file__))
+
+THUMBS_DIR = os.path.join(_get_base_dir(), 'thumbnails')
 # directory to keep local copies of original source images (so sources are available locally)
-COPIES_DIR = os.path.join(os.getcwd(), 'copies')
+COPIES_DIR = os.path.join(_get_base_dir(), 'copies')
 
 def ensure_thumbs_dir():
     try:

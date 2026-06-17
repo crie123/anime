@@ -201,6 +201,10 @@ class AddAnimePopup(BoxLayout):
             copied_poster = poster_path
             copied_screens = screenshots_paths
 
+        # Convert to relative paths before saving so DB stays portable
+        copied_poster = self.db._make_relative_path(copied_poster) if copied_poster else ''
+        copied_screens = [self.db._make_relative_path(p) if p else '' for p in copied_screens]
+
         self.db.add_anime(
             title=title,
             description=description,
@@ -322,6 +326,10 @@ class EditAnimePopup(BoxLayout):
         except Exception:
             new_poster_copy = poster_path
             new_screens_copies = screenshots_paths
+
+        # Convert to relative paths before saving so DB stays portable
+        new_poster_copy = self.db._make_relative_path(new_poster_copy) if new_poster_copy else ''
+        new_screens_copies = [self.db._make_relative_path(p) if p else '' for p in new_screens_copies]
 
         try:
             old_p = getattr(self, '_original_poster', '')
