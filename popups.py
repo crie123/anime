@@ -246,8 +246,12 @@ class EditAnimePopup(BoxLayout):
                     self.ids.poster_input.text = anime['poster_path']
                     self.ids.screenshots_input.text = ', '.join(anime['screenshots_paths'])
                     self.ids.tags_input.text = ', '.join(anime.get('tags', []))
-                    self._original_poster = anime.get('poster_path', '')
-                    self._original_screenshots = list(anime.get('screenshots_paths', []))
+                    orig_poster = anime.get('poster_path', '')
+                    self._original_poster = self.db._make_relative_path(orig_poster) if orig_poster else ''
+                    self._original_screenshots = [
+                        self.db._make_relative_path(p) if p else ''
+                        for p in anime.get('screenshots_paths', [])
+                    ]
         except Exception:
             pass
 
